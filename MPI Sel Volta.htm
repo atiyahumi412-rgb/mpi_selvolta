@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>MPI Sel Volta</title>
+<style>
+:root{
+  --bg:#0B1626; --bg2:#12233B; --panel:#172C48; --panel2:#1D3657; --garis:#2A4670;
+  --cyan:#22D3EE; --cyan-t:#0E9DB5; --amber:#FBBF24; --amber-t:#D69A0A;
+  --teks:#E8F1FB; --redup:#9DB4D1; --benar:#34D399; --salah:#F87171; --ungu:#A78BFA;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;width:100%;background:#050B14;overflow:hidden;font-family:'Segoe UI','Nunito',system-ui,sans-serif;color:var(--teks);touch-action:manipulation}
+#viewport{position:fixed;inset:0;overflow:hidden}
+#stage{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:top left;background:var(--bg);overflow:hidden;user-select:none;border-radius:18px}
+.hidden{display:none!important}
+button{font-family:inherit}
+.btn{border:none;border-radius:14px;cursor:pointer;font-weight:800;color:#06222B;background:linear-gradient(135deg,var(--cyan),#67E8F9);padding:12px 24px;font-size:18px;transition:.15s;box-shadow:0 6px 16px rgba(34,211,238,.25)}
+.btn:active{transform:scale(.96)}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn-amber{background:linear-gradient(135deg,var(--amber),#FDE68A);color:#3A2A00;box-shadow:0 6px 16px rgba(251,191,36,.25)}
+.btn-ghost{background:var(--panel2);color:var(--teks);box-shadow:none;border:2px solid var(--garis)}
+.btn-red{background:linear-gradient(135deg,#F87171,#FCA5A5);color:#3B0A0A}
+
+/* ===== HERO ===== */
+#hero{position:absolute;inset:0;z-index:3;display:flex;overflow:hidden;background:radial-gradient(circle at 75% 40%,#164067 0%,#0B1626 60%)}
+#hero .bgimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.28}
+#hero .glow{position:absolute;right:-120px;top:-120px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.35),transparent 70%)}
+.hero-kiri{position:relative;z-index:2;flex:0 0 700px;padding:70px 70px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.chip{display:inline-block;align-self:flex-start;background:rgba(34,211,238,.15);color:var(--cyan);border:1.5px solid var(--cyan);padding:6px 16px;border-radius:99px;font-weight:800;font-size:15px;letter-spacing:1px}
+.hero-kiri h1{font-size:84px;line-height:1;margin:6px 0 0;font-weight:900;background:linear-gradient(90deg,#fff,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-kiri p{font-size:26px;color:var(--redup);margin:0;font-weight:600;line-height:1.35}
+.hero-btns{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+.hero-btns .btn.mulai{font-size:26px;padding:16px 46px}
+.hero-kanan{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center}
+.bat{position:relative;width:260px;height:420px;border:6px solid var(--cyan);border-radius:36px;background:linear-gradient(180deg,#0E2238,#12385A);box-shadow:0 0 60px rgba(34,211,238,.4);overflow:hidden}
+.bat::before{content:'';position:absolute;top:-26px;left:50%;transform:translateX(-50%);width:90px;height:22px;background:var(--cyan);border-radius:8px 8px 0 0}
+.bat .lvl{position:absolute;left:0;right:0;bottom:0;height:70%;background:linear-gradient(180deg,var(--cyan),var(--cyan-t));animation:isi 3s ease-in-out infinite alternate}
+.bat .bolt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:130px;color:#fff;text-shadow:0 0 30px #fff}
+@keyframes isi{from{height:35%}to{height:85%}}
+
+/* ===== APP ===== */
+#app{position:absolute;inset:0;display:flex;z-index:2}
+#side{flex:0 0 230px;background:var(--bg2);border-right:2px solid var(--garis);display:flex;flex-direction:column;padding:22px 16px;gap:10px}
+#side .brand{font-size:26px;font-weight:900;color:var(--cyan);line-height:1.1;margin-bottom:6px}
+#side .brand small{display:block;font-size:13px;color:var(--redup);font-weight:700;margin-top:4px}
+.nav-i{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;font-weight:800;font-size:18px;cursor:pointer;color:var(--redup);border:2px solid transparent;background:transparent;text-align:left;transition:.15s}
+.nav-i:hover{background:var(--panel)}
+.nav-i.on{background:var(--panel2);color:var(--cyan);border-color:var(--cyan)}
+.nav-i .ic{font-size:22px}
+#side .sp{flex:1}
+.user-box{background:var(--panel);border:2px solid var(--garis);border-radius:16px;padding:12px 14px;font-size:14px;color:var(--redup)}
+.user-box b{display:block;color:var(--teks);font-size:16px;margin-bottom:2px}
+.audio{display:flex;align-items:center;gap:8px;background:var(--panel);padding:8px 12px;border-radius:99px;border:2px solid var(--garis)}
+.audio button{background:none;border:none;color:var(--teks);font-size:18px;cursor:pointer;padding:0}
+#volume-slider{-webkit-appearance:none;flex:1;height:5px;background:var(--garis);border-radius:5px;outline:none;min-width:0}
+#volume-slider::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--cyan);cursor:pointer}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+.head{flex:0 0 76px;display:flex;align-items:center;gap:16px;padding:0 30px;border-bottom:2px solid var(--garis)}
+.head h2{margin:0;font-size:26px;font-weight:900}
+.head small{display:block;font-size:14px;color:var(--redup);font-weight:600}
+.head .sp{flex:1}
+.skor{background:rgba(251,191,36,.15);border:2px solid var(--amber);color:var(--amber);font-weight:900;padding:6px 18px;border-radius:99px;font-size:18px}
+.steps{flex:0 0 58px;display:flex;align-items:center;gap:8px;padding:0 30px;border-bottom:1px solid var(--garis);overflow-x:auto}
+.stp{flex:0 0 38px;height:38px;border-radius:50%;background:var(--panel);border:2px solid var(--garis);color:var(--redup);font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.stp.on{background:var(--cyan);color:#06222B;border-color:var(--cyan);transform:scale(1.1)}
+.stp.ok{border-color:var(--benar);color:var(--benar)}
+.stp.lock{cursor:default;opacity:.6}
+.panel{flex:1;min-height:0;padding:22px 30px;display:flex;flex-direction:column;overflow:hidden}
+.foot{flex:0 0 74px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;border-top:2px solid var(--garis)}
+.foot .btn{min-width:170px}
+
+/* menu */
+.menu-grid{display:flex;gap:24px;flex:1;align-items:center;justify-content:center}
+.mcard{flex:1;height:390px;border-radius:28px;padding:26px;background:var(--panel);border:2px solid var(--garis);cursor:pointer;display:flex;flex-direction:column;gap:12px;transition:.2s;text-align:left;color:var(--teks);position:relative;overflow:hidden}
+.mcard:hover{transform:translateY(-6px);border-color:var(--cyan);box-shadow:0 14px 34px rgba(34,211,238,.18)}
+.mcard .no{font-size:70px;font-weight:900;opacity:.18;position:absolute;right:20px;top:6px}
+.mcard img{width:110px;height:110px;object-fit:contain;border-radius:50%;background:var(--panel2);padding:10px}
+.mcard h3{margin:auto 0 0;font-size:34px;font-weight:900}
+.mcard p{margin:0;color:var(--redup);font-size:17px;font-weight:600}
+.mcard.a{border-top:6px solid var(--cyan)}.mcard.b{border-top:6px solid var(--amber)}.mcard.c{border-top:6px solid var(--ungu)}
+.sapa{margin:0 0 16px;font-size:20px;color:var(--redup);line-height:1.5}
+.sapa b{color:var(--teks)}
+
+/* belajar */
+.bl{display:flex;gap:24px;flex:1;min-height:0}
+.bl-teks{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:6px}
+.bl-teks h3{margin:0;font-size:30px;font-weight:900;color:var(--cyan)}
+.intro{background:var(--panel2);border-left:6px solid var(--amber);padding:14px 18px;border-radius:14px;font-size:19px;font-weight:700;line-height:1.4}
+.isi{font-size:19px;line-height:1.6;color:#CFE0F4}
+.isi b{color:var(--amber)}
+.isi ul{padding-left:22px;margin:8px 0}.isi li{margin-bottom:6px}
+.isi p{margin:8px 0}
+.bl-img{flex:0 0 330px;background:var(--panel);border:2px solid var(--garis);border-radius:24px;display:flex;align-items:center;justify-content:center;padding:14px}
+.bl-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:14px}
+.kuismini{background:rgba(34,211,238,.08);border:2px dashed var(--cyan);border-radius:16px;padding:14px 16px}
+.kuismini p{margin:0 0 10px;font-weight:800;font-size:17px;color:var(--cyan)}
+.kuismini .row{display:flex;gap:10px}
+.kuismini .btn{font-size:16px;padding:9px 20px}
+
+/* aktivitas */
+.ins{font-size:20px;font-weight:700;margin:0 0 14px;color:var(--teks);background:var(--panel);border-radius:14px;padding:12px 18px;border-left:6px solid var(--cyan)}
+.col{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto}
+.fb{display:none;margin-top:12px;border-radius:14px;padding:13px 18px;font-size:18px;font-weight:700;line-height:1.45;text-align:center}
+.fb.show{display:block}
+.fb.ok{background:rgba(52,211,153,.15);border:2px solid var(--benar);color:var(--benar)}
+.fb.no{background:rgba(248,113,113,.13);border:2px solid var(--salah);color:var(--salah)}
+.jod{display:flex;gap:40px;flex:1;min-height:0;justify-content:center}
+.jod .k{flex:1;display:flex;flex-direction:column;gap:12px;justify-content:center}
+.pr{background:var(--panel);border:3px solid var(--garis);border-radius:18px;padding:12px 18px;min-height:80px;display:flex;align-items:center;gap:14px;font-size:19px;font-weight:700;cursor:pointer;transition:.15s}
+.pr:hover{border-color:var(--cyan)}
+.pr img{width:50px;height:50px;object-fit:contain}
+.pr.sel{border-color:var(--amber);background:rgba(251,191,36,.12);color:var(--amber)}
+.pr.locked{border-color:var(--benar);background:rgba(52,211,153,.12);color:var(--benar);cursor:default}
+.pr.salah{border-color:var(--salah);animation:shk .4s}
+@keyframes shk{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1}
+.obj{background:var(--panel);border:3px solid var(--garis);border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:20px;font-weight:800;cursor:pointer;padding:12px;transition:.15s}
+.obj:hover{border-color:var(--cyan)}
+.obj img{height:110px;object-fit:contain}
+.obj.benar{border-color:var(--benar);background:rgba(52,211,153,.12)}
+.obj.salah{border-color:var(--salah);background:rgba(248,113,113,.12)}
+.ur{display:flex;align-items:center;gap:14px;background:var(--panel);border:2px solid var(--garis);border-radius:16px;padding:10px 16px;margin-bottom:10px;font-size:19px;font-weight:700}
+.ur .n{flex:0 0 40px;height:40px;border-radius:50%;background:var(--cyan);color:#06222B;display:flex;align-items:center;justify-content:center;font-weight:900}
+.ur span:nth-child(2){flex:1}
+.ur button{width:40px;height:40px;padding:0;font-size:16px;border-radius:10px}
+.hud{display:flex;gap:14px;justify-content:center;margin-bottom:10px}
+.hud div{background:var(--panel);border:2px solid var(--garis);border-radius:99px;padding:6px 20px;font-weight:900;font-size:19px}
+.arena{position:relative;flex:1;min-height:0;border:3px dashed var(--cyan);border-radius:22px;background:radial-gradient(circle at 50% 40%,#16345A,#0E1F36);overflow:hidden}
+.fl{position:absolute;width:90px;cursor:pointer;animation:pp .2s ease}
+.fl img{width:100%;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+@keyframes pp{from{transform:scale(0)}to{transform:scale(1)}}
+.lirik{background:linear-gradient(135deg,var(--panel2),var(--panel));border:2px solid var(--cyan);border-radius:22px;padding:24px;font-size:26px;font-weight:800;text-align:center;line-height:1.4}
+.sopsi{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.sb{background:var(--panel);border:3px solid var(--garis);border-radius:16px;padding:16px 20px;font-size:21px;font-weight:700;cursor:pointer;color:var(--teks);transition:.15s}
+.sb:hover{border-color:var(--cyan)}
+.sb.benar{border-color:var(--benar);background:rgba(52,211,153,.14);color:var(--benar)}
+.sb.salah{border-color:var(--salah);background:rgba(248,113,113,.12);color:var(--salah)}
+.akhir{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.akhir h2{font-size:42px;margin:0;color:var(--cyan)}
+.akhir .id{background:var(--panel);border:2px solid var(--garis);padding:8px 22px;border-radius:99px;font-size:20px;font-weight:700}
+.akhir .big{font-size:84px;font-weight:900;color:var(--amber);margin:0}
+
+/* soal */
+.split{display:flex;gap:22px;flex:1;min-height:0}
+.sk{flex:0 0 42%;background:var(--panel);border:2px solid var(--garis);border-top:6px solid var(--amber);border-radius:20px;padding:22px 26px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.sk .lb{font-size:13px;font-weight:900;letter-spacing:2px;color:var(--amber)}
+.sk .st{font-size:17px;line-height:1.55;background:var(--bg2);border-radius:12px;padding:12px 16px;color:var(--redup)}
+.sk .st b{color:var(--teks)}
+.sk .sq{font-size:23px;font-weight:800;line-height:1.45}
+.sk img{max-width:100%;max-height:220px;object-fit:contain}
+.sr{flex:1;display:flex;flex-direction:column;gap:10px;overflow-y:auto;justify-content:center}
+.op{display:flex;align-items:center;gap:14px;background:var(--panel);border:3px solid var(--garis);border-radius:16px;padding:13px 18px;font-size:19px;font-weight:700;cursor:pointer;transition:.15s}
+.op:hover{border-color:var(--cyan)}
+.op .bl2{flex:0 0 38px;height:38px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-weight:900}
+.op.benar{border-color:var(--benar);background:rgba(52,211,153,.13)}
+.op.benar .bl2{background:var(--benar);color:#04271B}
+.op.salah{border-color:var(--salah);background:rgba(248,113,113,.12)}
+.op.salah .bl2{background:var(--salah);color:#3B0A0A}
+.op.terpilih{border-color:var(--cyan);background:rgba(34,211,238,.12)}
+.op.terpilih .bl2{background:var(--cyan);color:#06222B}
+.q1{background:var(--panel);border-left:8px solid var(--cyan);border-radius:18px;padding:22px 28px;font-size:25px;font-weight:800;line-height:1.4;margin-bottom:18px}
+.bsg{display:flex;gap:22px}
+.bsb{flex:1;height:110px;border:none;border-radius:26px;font-size:34px;font-weight:900;cursor:pointer;color:#fff}
+.bsb.t{background:linear-gradient(135deg,#10B981,#34D399);color:#04271B}.bsb.f{background:linear-gradient(135deg,#EF4444,#F87171);color:#3B0A0A}
+.kal{background:var(--panel);border:2px solid var(--garis);border-radius:20px;padding:26px;font-size:26px;font-weight:700;line-height:2}
+.blank-slot{display:inline-block;min-width:120px;height:44px;border-bottom:4px dashed var(--cyan);margin:0 8px;vertical-align:middle;text-align:center;color:var(--cyan);font-weight:900;cursor:pointer;background:rgba(34,211,238,.08);border-radius:8px 8px 0 0}
+.blank-slot.terisi{border-bottom-style:solid}
+.pool{display:flex;gap:14px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.wb{background:linear-gradient(135deg,var(--amber),#FDE68A);color:#3A2A00;border:none;padding:11px 22px;font-size:21px;font-weight:800;border-radius:14px;cursor:pointer}
+.wb.dipakai{opacity:0;pointer-events:none}
+
+/* efek */
+#efek{position:absolute;inset:0;z-index:80;pointer-events:none;background:rgba(248,113,113,0);transition:background .6s}
+#efek.on{background:rgba(248,113,113,.35);transition:none}
+.cf{position:absolute;width:11px;height:11px;z-index:80;pointer-events:none;animation:pop 1.4s cubic-bezier(.25,1,.5,1) forwards}
+@keyframes pop{to{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0) rotate(720deg);opacity:0}}
+
+/* modal */
+.mb{position:absolute;inset:0;z-index:90;background:rgba(3,8,16,.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.mb.show{display:flex}
+.md{width:800px;max-width:92%;max-height:88%;overflow:auto;background:var(--bg2);border:2px solid var(--cyan);border-radius:28px;padding:34px 38px;position:relative}
+.md h3{margin:0 0 14px;font-size:30px;color:var(--cyan)}
+.md h4{color:var(--amber);margin:14px 0 6px;font-size:18px}
+.md .x{position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;background:var(--panel);color:var(--salah);border:2px solid var(--garis);font-size:18px;cursor:pointer;font-weight:900}
+.md table{width:100%;border-collapse:collapse}
+.md td{border:1.5px solid var(--garis);padding:11px 14px;font-size:18px;line-height:1.5}
+.md td:first-child{width:34%;font-weight:800;color:var(--amber);background:var(--panel)}
+.md ol,.md ul{padding-left:22px;font-size:15px;line-height:1.5}.md li{margin-bottom:8px}
+.inp{width:100%;padding:14px 18px;font-size:20px;font-weight:700;color:var(--teks);background:var(--panel);border:2px solid var(--garis);border-radius:14px;margin-bottom:14px;outline:none;font-family:inherit}
+.inp:focus{border-color:var(--cyan)}
+.dev{display:flex;gap:26px;align-items:center}
+.dev img{width:150px;height:190px;object-fit:cover;border-radius:16px;border:3px solid var(--cyan);background:var(--panel)}
+.timer{display:flex;align-items:center;gap:6px;background:rgba(34,211,238,.12);border:2px solid var(--cyan);color:var(--cyan);font-weight:900;padding:6px 18px;border-radius:99px;font-size:18px;font-variant-numeric:tabular-nums;min-width:128px;justify-content:center;white-space:nowrap}
+.timer.warn{background:rgba(251,191,36,.15);border-color:var(--amber);color:var(--amber)}
+.timer.bad{background:rgba(248,113,113,.15);border-color:var(--salah);color:var(--salah);animation:dag .5s ease-in-out infinite alternate}
+.timer.ok{background:rgba(52,211,153,.13);border-color:var(--benar);color:var(--benar)}
+.timer.to{background:rgba(248,113,113,.15);border-color:var(--salah);color:var(--salah)}
+@keyframes dag{to{transform:scale(1.08)}}
+.tbar{flex:0 0 6px;background:var(--panel)}
+.tbar i{display:block;height:100%;width:100%;background:var(--cyan);transition:width 1s linear,background .3s}
+.tbar.warn i{background:var(--amber)}.tbar.bad i{background:var(--salah)}
+.stp.to{border-color:var(--salah);color:var(--salah)}
+.bsb.sorot{outline:5px solid #fff}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<div id="efek"></div>
+
+<!-- HERO -->
+<section id="hero">
+  <img class="bgimg" id="cfg-bg" src="./asset/img/bg_judul.jpg" alt="" onerror="imgErr(this)">
+  <div class="glow"></div>
+  <div class="hero-kiri">
+    <span class="chip" id="cfg-chip">KIMIA • FASE F</span>
+    <h1 id="cfg-judul">Sel Volta</h1>
+    <p id="cfg-sub"></p>
+    <div class="hero-btns">
+      <button class="btn mulai" onclick="openModal('m-login')">⚡ MULAI</button>
+      <button class="btn btn-ghost" onclick="openModal('m-info')">📘 Data Pelajaran</button>
+      <button class="btn btn-ghost" onclick="openModal('m-dev')">👩‍🏫 Profil</button>
+      <button class="btn btn-ghost" onclick="openModal('m-ref')">📚 Referensi</button>
+    </div>
+  </div>
+  <div class="hero-kanan"><div class="bat"><div class="lvl"></div><div class="bolt">⚡</div></div></div>
+</section>
+
+<!-- APP -->
+<section id="app" class="hidden">
+  <aside id="side">
+    <div class="brand">⚡ Sel Volta<small>Media Pembelajaran Interaktif</small></div>
+    <button class="nav-i on" id="n-menu" onclick="go('menu')"><span class="ic">🏠</span>Beranda</button>
+    <button class="nav-i" id="n-belajar" onclick="startBelajar()"><span class="ic">📖</span>Belajar</button>
+    <button class="nav-i" id="n-bermain" onclick="startBermain()"><span class="ic">🎮</span>Bermain</button>
+    <button class="nav-i" id="n-berlatih" onclick="startBerlatih()"><span class="ic">📝</span>Berlatih</button>
+    <button class="nav-i" onclick="goHero()"><span class="ic">🚪</span>Halaman Awal</button>
+    <div class="sp"></div>
+    <div class="user-box"><b id="u-nama">Murid</b><span id="u-sek">-</span></div>
+    <div class="audio"><button id="snd" onclick="toggleSound()">🔊</button><input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)"></div>
+  </aside>
+  <div id="main">
+    <div class="head"><div><h2 id="h-judul">Beranda</h2><small id="h-sub"></small></div><div class="sp"></div><div class="timer hidden" id="timer-box">⏱️ <span id="timer-txt">00:00</span></div><div class="skor hidden" id="skor-box">🏆 <span id="skor">0</span></div></div>
+    <div class="tbar hidden" id="tbar"><i id="tbar-i"></i></div><div class="steps hidden" id="steps"></div>
+    <div class="panel" id="panel"></div>
+    <div class="foot hidden" id="foot"><button class="btn btn-ghost" id="b-prev" onclick="prevFn()">◀ Sebelumnya</button><button class="btn" id="b-next" onclick="nextFn()">Selanjutnya ▶</button></div>
+  </div>
+</section>
+
+<!-- MODALS -->
+<div class="mb" id="m-login"><div class="md" style="width:520px;text-align:center"><button class="x" onclick="closeModal('m-login')">✕</button><h3>Selamat Datang!</h3><p style="color:var(--redup)">Isi identitasmu sebelum mulai belajar.</p><input class="inp" id="in-nama" placeholder="Nama Lengkap"><input class="inp" id="in-sek" placeholder="Asal Sekolah"><div id="lg-err" style="color:var(--salah);font-weight:800;margin-bottom:12px;display:none">⚠️ Nama belum diisi!</div><button class="btn" style="width:100%;font-size:22px" onclick="simpanIdentitas()">Mulai Belajar</button></div></div>
+<div class="mb" id="m-info"><div class="md"><button class="x" onclick="closeModal('m-info')">✕</button><h3>Informasi Materi</h3><table><tr><td>Fase / Kelas</td><td id="i-fase"></td></tr><tr><td>Mata Pelajaran</td><td id="i-mapel"></td></tr><tr><td>Unit</td><td id="i-unit"></td></tr><tr><td>Sub Unit</td><td id="i-sub"></td></tr><tr><td>Tujuan Pembelajaran</td><td id="i-tp"></td></tr></table></div></div>
+<div class="mb" id="m-dev"><div class="md"><button class="x" onclick="closeModal('m-dev')">✕</button><h3>Profil Pengembang</h3><div class="dev"><img id="d-foto" alt="Foto" onerror="this.style.visibility='hidden'"><table><tr><td>Nama</td><td id="d-nama"></td></tr><tr><td>Instansi</td><td id="d-ins"></td></tr><tr><td>Surel</td><td id="d-surel"></td></tr><tr><td>Tahun</td><td id="d-thn"></td></tr><tr><td>Jenis</td><td id="d-jenis"></td></tr></table></div></div></div>
+<div class="mb" id="m-ref"><div class="md" style="width:960px"><button class="x" onclick="closeModal('m-ref')">✕</button><h3>Referensi</h3><h4>Sumber Materi</h4><ol id="r-materi"></ol><h4>Sumber Aset Visual dan Audio</h4><ol id="r-aset"></ol><h4>Keterangan Kecerdasan Artifisial</h4><ul id="r-ai"></ul></div></div>
+</div></div>
+
+<script>
+/* ===================== KONFIGURASI & DATA (sama dengan versi 1) ===================== */
+const CONFIG = {
+  judul:"Sel Volta", subJudul:"Mengenal sumber energi listrik dari reaksi kimia",
+  fase:"XII/F", mapel:"Kimia", unit:"Sel Elektrokimia", subUnit:"Sel Volta",
+  tp:"Murid mampu menjelaskan sel elektrokimia dalam kehidupan sehari-hari.",
+  bgJudul:"./asset/img/bg_judul.jpg",
+  profil:{ nama:"Umi Atiyah, S.Si.", instansi:"SMAN 1 Cikarang Barat", surel:"umiatiyah42@guru.sma.belajar.id", tahun:"2026", jenis:"Media Pembelajaran Interaktif (MPI)", foto:"./asset/img/profil.png" },
+  referensi:{
+    materi:[
+      "Badan Standar, Kurikulum, dan Asesmen Pendidikan. (2025). Keputusan Kepala BSKAP Nomor 046/H/KR/2025 tentang Capaian Pembelajaran pada Pendidikan Anak Usia Dini, Jenjang Pendidikan Dasar, dan Jenjang Pendidikan Menengah. Kementerian Pendidikan Dasar dan Menengah.",
+      "Yuliani, G., Dianhar, H., & Suhendar, A. (2022). Buku Panduan Guru Kimia untuk SMA/MA Kelas XII. Jakarta: Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi Republik Indonesia."
+    ],
+    aset:[
+      "OpenAI. (2026). ChatGPT (Versi GPT-4o). Seluruh ilustrasi, elemen visual, dan desain dalam media pembelajaran ini dihasilkan melalui prompting pada layanan OpenAI. Ketentuan Penggunaan OpenAI (Terms of Use). https://openai.com/policies/row-terms-of-use/",
+      "MyInstants. (2026). Efek suara (sound effect) yang digunakan pada media pembelajaran. Lisensi sesuai ketentuan penggunaan MyInstants. https://www.myinstants.com/"
+    ],
+    ai:[
+      "Ilustrasi dan gambar pada halaman muka dan halaman materi, bermain, dan berlatih dibuat menggunakan ChatGPT.",
+      "Seluruh materi, soal, dan pembahasan disusun oleh pengembang."
+    ]
+  }
+};
+
+const MATERI = [
+{ judul:"1. Mengenal Sel Elektrokimia dan Sel Volta", img:"./asset/img/materi_1.png",
+  intro:"Anak-anak, mari kita mulai dari konsep besarnya. Sel elektrokimia menghubungkan reaksi kimia dengan energi listrik.",
+  isi:"<p><b>Sel elektrokimia</b> merupakan sistem yang melibatkan reaksi oksidasi-reduksi (redoks) dan perpindahan elektron. Dalam kehidupan sehari-hari, konsep ini dapat kita temukan pada berbagai jenis baterai.</p><p>Pada <b>sel Volta atau sel Galvani</b>, reaksi redoks yang berlangsung spontan menghasilkan arus listrik.</p><ul><li>Energi kimia diubah menjadi <b>energi listrik</b>.</li><li>Reaksi oksidasi dan reduksi berlangsung pada elektrode yang berbeda.</li><li>Elektron mengalir melalui rangkaian luar sehingga dapat menghasilkan arus listrik.</li></ul><p><b>Ingat:</b> sel Volta menghasilkan listrik dari reaksi kimia yang berlangsung spontan.</p>",
+  kuis:{tanya:"Perubahan energi utama pada sel Volta adalah ...",o:["energi kimia → energi listrik","energi listrik → energi kimia"],j:0} },
+{ judul:"2. Reaksi Redoks pada Sel Volta", img:"./asset/img/materi_2.png",
+  intro:"Sekarang, Ibu ingin kalian memahami hubungan oksidasi, reduksi, dan perpindahan elektron.",
+  isi:"<p>Sel Volta bekerja berdasarkan <b>reaksi redoks</b>, yaitu reaksi yang melibatkan oksidasi dan reduksi secara bersamaan.</p><ul><li><b>Oksidasi</b> adalah proses pelepasan elektron.</li><li><b>Reduksi</b> adalah proses penerimaan elektron.</li><li>Oksidasi dan reduksi terjadi secara bersamaan karena elektron yang dilepaskan pada oksidasi digunakan dalam proses reduksi.</li><li>Pada sel Volta, kedua proses tersebut berlangsung pada elektrode yang berbeda.</li></ul><p><b>Tips Ibu:</b> kalian dapat mengingatnya dengan pola <b>AnOx–RedCat</b>, yaitu oksidasi di anoda dan reduksi di katoda.</p>",
+  kuis:{tanya:"Proses pelepasan elektron disebut ...",o:["oksidasi","reduksi"],j:0} },
+{ judul:"3. Komponen dan Cara Kerja Sel Volta", img:"./asset/img/materi_3.png",
+  intro:"Mari kita kenali bagian-bagian sel Volta dan fungsi masing-masing agar kalian dapat membaca sebuah rangkaian sel dengan benar.",
+  isi:"<p>Sel Volta terdiri atas beberapa komponen penting yang bekerja bersama.</p><ul><li><b>Anoda:</b> tempat berlangsungnya oksidasi.</li><li><b>Katoda:</b> tempat berlangsungnya reduksi.</li><li><b>Larutan elektrolit:</b> menyediakan ion yang terlibat dalam reaksi.</li><li><b>Kawat penghantar:</b> menjadi jalur perpindahan elektron.</li><li><b>Jembatan garam:</b> memungkinkan perpindahan ion dan membantu menjaga kenetralan muatan kedua setengah sel.</li></ul><p>Pada sel Volta, <b>anoda bermuatan negatif</b> dan <b>katoda bermuatan positif</b>.</p>",
+  kuis:{tanya:"Di manakah oksidasi berlangsung pada sel Volta?",o:["anoda","katoda"],j:0} },
+{ judul:"4. Sel Daniell Zn–Cu dan Arah Elektron", img:"./asset/img/materi_4.png",
+  intro:"Sekarang kita gunakan sel Daniell Zn–Cu sebagai contoh supaya konsep Sel Volta lebih mudah kalian bayangkan.",
+  isi:"<p>Sel Daniell menggunakan elektrode <b>Zn</b> dan <b>Cu</b> yang masing-masing berada dalam larutan elektrolitnya.</p><ul><li>Pada anoda terjadi oksidasi: <b>Zn(s) → Zn²⁺(aq) + 2e⁻</b>.</li><li>Pada katoda terjadi reduksi: <b>Cu²⁺(aq) + 2e⁻ → Cu(s)</b>.</li><li>Elektron mengalir melalui kawat dari <b>Zn menuju Cu</b>.</li><li>Reaksi total: <b>Zn(s) + Cu²⁺(aq) → Zn²⁺(aq) + Cu(s)</b>.</li></ul><p>Jadi, pada sel Daniell <b>Zn adalah anoda</b> dan <b>Cu adalah katoda</b>.</p>",
+  kuis:{tanya:"Pada sel Daniell Zn–Cu, elektrode yang menjadi anoda adalah ...",o:["Zn","Cu"],j:0} },
+{ judul:"5. Jembatan Garam dan Notasi Sel", img:"./asset/img/materi_5.png",
+  intro:"Anak-anak, jembatan garam memiliki peran penting. Tanpanya, penumpukan muatan dapat menghambat berlangsungnya reaksi sel.",
+  isi:"<p><b>Jembatan garam</b> memungkinkan perpindahan ion antara kedua setengah sel tanpa mencampurkan larutan secara langsung.</p><ul><li><b>Anion</b> bergerak menuju kompartemen anoda.</li><li><b>Kation</b> bergerak menuju kompartemen katoda.</li><li>Perpindahan ion membantu menjaga <b>kenetralan muatan</b>.</li></ul><p>Notasi sel ditulis dari <b>anoda di sebelah kiri</b> menuju <b>katoda di sebelah kanan</b>.</p><p style='font-size:22px;text-align:center'><b>Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)</b></p><p>Garis tunggal menunjukkan batas fase, sedangkan garis ganda menunjukkan jembatan garam.</p>",
+  kuis:{tanya:"Dalam notasi sel Volta, anoda ditulis di sebelah ...",o:["kiri","kanan"],j:0} },
+{ judul:"6. Potensial Sel dan Spontanitas", img:"./asset/img/materi_6.png",
+  intro:"Terakhir, mari kita gunakan potensial reduksi standar untuk menentukan potensial sel dan melihat apakah reaksi berlangsung spontan.",
+  isi:"<p>Potensial sel standar dapat dihitung dengan persamaan:</p><p style='font-size:26px;text-align:center'><b>E°sel = E°katoda − E°anoda</b></p><p>Nilai yang digunakan adalah <b>potensial reduksi standar</b> masing-masing pasangan.</p><ul><li>Katoda merupakan tempat reduksi.</li><li>Anoda merupakan tempat oksidasi.</li><li>Jika <b>E°sel &gt; 0</b>, reaksi sel berlangsung spontan pada kondisi standar.</li></ul><p>Untuk sel Zn–Cu:</p><p style='font-size:22px;text-align:center'><b>E°sel = (+0,34 V) − (−0,76 V) = +1,10 V</b></p>",
+  kuis:{tanya:"Jika E°sel bernilai positif, reaksi sel pada kondisi standar bersifat ...",o:["spontan","tidak spontan"],j:0} },
+{ judul:"7. Kesimpulan", img:"./asset/img/materi_7.png",
+  intro:"Bagus, anak-anak. Sekarang mari kita rangkum seluruh konsep Sel Volta menjadi satu alur yang mudah kalian ingat.",
+  isi:"<ul><li><b>Sel Volta</b> merupakan sel elektrokimia yang mengubah energi kimia menjadi energi listrik melalui reaksi redoks spontan.</li><li><b>Oksidasi</b> berlangsung di anoda, sedangkan <b>reduksi</b> berlangsung di katoda.</li><li>Pada sel Volta, <b>anoda negatif</b> dan <b>katoda positif</b>.</li><li>Elektron mengalir melalui rangkaian luar dari <b>anoda menuju katoda</b>.</li><li><b>Jembatan garam</b> memungkinkan migrasi ion untuk mempertahankan kenetralan muatan.</li><li>Notasi sel ditulis dari <b>anoda ke katoda</b>.</li><li>Untuk kondisi standar, <b>E°sel positif</b> menunjukkan reaksi spontan.</li><li>Konsep sel elektrokimia dapat digunakan untuk memahami berbagai sumber energi listrik dalam kehidupan sehari-hari.</li></ul><p><b>Pesan Ibu:</b> ketika kalian menemukan baterai atau sumber energi listrik dalam kehidupan sehari-hari, coba pikirkan reaksi kimia dan perpindahan elektron yang terjadi di dalamnya.</p>" }
+];
+
+const dataBermain = [
+{t:'jodoh',sub:'Kenali Komponen Sel Volta',ins:'Jodohkan fungsi berikut dengan komponen Sel Volta yang tepat!',
+ pairs:[{n:1,teks:'Tempat terjadinya oksidasi'},{n:2,teks:'Tempat terjadinya reduksi'},{n:3,teks:'Membantu menjaga kenetralan muatan'}],
+ imgs:[{n:1,i:'./asset/img/game_anoda.png',name:'Anoda'},{n:2,i:'./asset/img/game_katoda.png',name:'Katoda'},{n:3,i:'./asset/img/game_jembatan.png',name:'Jembatan garam'}]},
+{t:'klik',sub:'Pilih Anoda',ins:'Pada sel Daniell Zn–Cu, pilih elektrode yang menjadi anoda!',
+ opsi:[{imgPath:'./asset/img/game_zn.png',t:'Elektrode Zn',b:true,msg:'Benar. Zn mengalami oksidasi dan bertindak sebagai anoda.'},
+ {imgPath:'./asset/img/game_cu.png',t:'Elektrode Cu',b:false,msg:'Cu merupakan katoda karena Cu²⁺ mengalami reduksi.'},
+ {imgPath:'./asset/img/game_bridge.png',t:'Jembatan garam',b:false,msg:'Jembatan garam bukan elektrode.'},
+ {imgPath:'./asset/img/game_wire.png',t:'Kawat penghantar',b:false,msg:'Kawat penghantar menjadi jalur perpindahan elektron.'}]},
+{t:'urut',sub:'Urutkan Proses Redoks',ins:'Susun urutan berikut agar menggambarkan proses pada sel Daniell dengan benar!',
+ urut:['Zn mengalami oksidasi di anoda','Atom Zn melepaskan elektron','Elektron mengalir melalui kawat penghantar','Cu²⁺ menerima elektron di katoda']},
+{t:'kumpul',sub:'Kumpulkan Simbol Anoda',ins:'Ketuk hanya gambar yang mewakili ANODA pada sel Zn–Cu. Hindari gambar lainnya!',
+ benar:'./asset/img/game_zn.png',salah:['./asset/img/game_cu.png','./asset/img/game_bridge.png']},
+{t:'sambung',sub:'Sambung Konsep Redoks',ins:'Pilih lanjutan pernyataan yang paling tepat!',
+ hasil:'Oksidasi terjadi di anoda, elektron mengalir melalui rangkaian luar, dan reduksi terjadi di katoda.',
+ steps:[{prev:'Oksidasi terjadi di ...',benar:'anoda',salah:['katoda','jembatan garam']},
+ {prev:'Elektron bergerak dari ...',benar:'anoda menuju katoda',salah:['katoda menuju anoda','jembatan garam menuju anoda']},
+ {prev:'Reduksi terjadi di ...',benar:'katoda',salah:['anoda','larutan elektrolit']}]},
+{t:'jodoh',sub:'Jodohkan Reaksi Sel Daniell',ins:'Jodohkan reaksi dengan lokasi atau jenis reaksinya yang tepat!',
+ pairs:[{n:1,teks:'Zn(s) → Zn²⁺(aq) + 2e⁻'},{n:2,teks:'Cu²⁺(aq) + 2e⁻ → Cu(s)'},{n:3,teks:'Zn(s) + Cu²⁺(aq) → Zn²⁺(aq) + Cu(s)'}],
+ imgs:[{n:1,i:'./asset/img/game_anoda.png',name:'Reaksi anoda'},{n:2,i:'./asset/img/game_katoda.png',name:'Reaksi katoda'},{n:3,i:'./asset/img/game_sel.png',name:'Reaksi total'}]},
+{t:'klik',sub:'Pilih Notasi Sel',ins:'Pilih notasi yang benar untuk sel Daniell Zn–Cu!',
+ opsi:[{imgPath:'./asset/img/game_notasi_benar.png',t:'Zn | Zn²⁺ || Cu²⁺ | Cu',b:true,msg:'Tepat. Anoda ditulis di kiri dan katoda di kanan.'},
+ {imgPath:'./asset/img/game_notasi_2.png',t:'Cu | Cu²⁺ || Zn²⁺ | Zn',b:false,msg:'Urutan ini menempatkan Cu sebagai anoda dan Zn sebagai katoda, sehingga tidak sesuai dengan sel Daniell.'},
+ {imgPath:'./asset/img/game_notasi_3.png',t:'Zn²⁺ | Zn || Cu | Cu²⁺',b:false,msg:'Urutan penulisan spesies dalam notasi sel belum tepat.'},
+ {imgPath:'./asset/img/game_notasi_4.png',t:'Zn || Zn²⁺ | Cu²⁺ || Cu',b:false,msg:'Penggunaan garis tunggal dan ganda pada notasi tersebut belum tepat.'}]},
+{t:'urut',sub:'Hitung Potensial Sel',ins:'Susun langkah perhitungan E°sel untuk sel Zn–Cu secara berurutan!',
+ urut:['Tentukan katoda: Cu²⁺/Cu dengan E° = +0,34 V','Tentukan anoda: Zn²⁺/Zn dengan E° = −0,76 V','Gunakan rumus E°sel = E°katoda − E°anoda','Hitung: +0,34 − (−0,76) = +1,10 V']},
+{t:'kumpul',sub:'Kumpulkan Tanda Spontan',ins:'Ketuk hanya simbol yang menunjukkan E°sel positif dan reaksi spontan pada kondisi standar!',
+ benar:'./asset/img/game_e_positif.png',salah:['./asset/img/game_e_negatif.png','./asset/img/game_e_nol.png']},
+{t:'sambung',sub:'Sambung Pergerakan Ion',ins:'Lengkapi hubungan fungsi jembatan garam berikut!',
+ hasil:'Anion bergerak menuju anoda dan kation bergerak menuju katoda untuk membantu menjaga kenetralan muatan.',
+ steps:[{prev:'Di kompartemen anoda terbentuk semakin banyak kation, sehingga ...',benar:'anion dari jembatan garam bergerak ke anoda',salah:['kation bergerak ke anoda','elektron bergerak melalui jembatan garam']},
+ {prev:'Di kompartemen katoda, kation larutan berkurang, sehingga ...',benar:'kation dari jembatan garam bergerak ke katoda',salah:['anion bergerak ke katoda','elektron masuk dari jembatan garam']},
+ {prev:'Fungsi utama migrasi ion tersebut adalah ...',benar:'menjaga kenetralan muatan kedua setengah sel',salah:['menghasilkan elektron','mengubah anoda menjadi katoda']}]}
+];
+
+const dtLatih = [
+{t:'pg',stimulus:'<b>Perhatikan:</b> Sebuah sel Volta Zn–Cu tersusun atas elektrode Zn dalam larutan Zn²⁺ dan elektrode Cu dalam larutan Cu²⁺.',soal:'Pernyataan yang tepat tentang elektrode Zn adalah ...',
+ opsi:['Zn mengalami oksidasi dan bertindak sebagai anoda','Zn mengalami reduksi dan bertindak sebagai katoda','Zn menerima elektron dari Cu','Zn menjadi tempat reduksi Cu²⁺','Zn hanya berfungsi sebagai penghantar ion'],j:0,
+ msg:'Benar. Zn mengalami oksidasi: Zn(s) → Zn²⁺(aq) + 2e⁻, sehingga Zn bertindak sebagai anoda.'},
+{t:'bs',soal:'Pada sel Volta, elektron pada rangkaian luar mengalir dari katoda menuju anoda.',j:false,msg:'Pernyataan salah. Elektron mengalir melalui rangkaian luar dari anoda menuju katoda.'},
+{t:'drag_word',soal:'Lengkapi kalimat berikut: oksidasi berlangsung di <span class="blank-slot" data-id="1">___</span>, sedangkan reduksi berlangsung di <span class="blank-slot" data-id="2">___</span>.',
+ w:['anoda','katoda','jembatan garam','larutan elektrolit'],j:['anoda','katoda'],msg:'Ingat pola AnOx–RedCat: oksidasi berlangsung di anoda dan reduksi berlangsung di katoda.'},
+{t:'pg_kompleks',soal:'Pilih semua pernyataan yang benar tentang jembatan garam pada sel Volta.',
+ opsi:['Membantu menjaga kenetralan muatan kedua setengah sel','Menjadi jalur utama aliran elektron','Memungkinkan perpindahan ion','Membantu mencegah terhentinya reaksi akibat penumpukan muatan','Selalu harus terbuat dari logam'],j:[0,2,3],
+ msg:'Jembatan garam berperan dalam perpindahan ion dan menjaga kenetralan muatan. Elektron mengalir melalui rangkaian luar, bukan melalui jembatan garam.'},
+{t:'jodoh',soal:'Jodohkan istilah dengan komponen yang sesuai pada sel Daniell!',
+ pairs:[{n:1,t:'Anoda pada sel Daniell'},{n:2,t:'Katoda pada sel Daniell'},{n:3,t:'Penghubung ionik kedua setengah sel'}],
+ imgs:[{n:1,i:'./asset/img/latih_zn.png',name:'Zn'},{n:2,i:'./asset/img/latih_cu.png',name:'Cu'},{n:3,i:'./asset/img/latih_bridge.png',name:'Jembatan garam'}],
+ msg:'Pada sel Daniell, Zn merupakan anoda, Cu merupakan katoda, dan jembatan garam membantu menghubungkan kedua setengah sel secara ionik.'},
+{t:'pg',soal:'Notasi sel yang tepat untuk sel Daniell adalah ...',
+ opsi:['Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)','Cu(s) | Cu²⁺(aq) || Zn²⁺(aq) | Zn(s)','Zn²⁺(aq) | Zn(s) || Cu(s) | Cu²⁺(aq)','Zn(s) || Zn²⁺(aq) | Cu²⁺(aq) || Cu(s)','Cu²⁺(aq) | Cu(s) | Zn(s) | Zn²⁺(aq)'],j:0,
+ msg:'Benar. Notasi sel ditulis dari anoda di kiri menuju katoda di kanan: Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s).'},
+{t:'bs',soal:'Jika E°sel bernilai positif, reaksi sel seperti yang dituliskan bersifat spontan pada kondisi standar.',j:true,msg:'Benar. E°sel positif menunjukkan reaksi sel berlangsung spontan pada kondisi standar.'},
+{t:'pg_kompleks',stimulus:'Diketahui E° reduksi: Cu²⁺/Cu = +0,34 V dan Zn²⁺/Zn = −0,76 V.',soal:'Pilih semua pernyataan yang benar untuk sel Zn–Cu.',
+ opsi:['Cu berperan sebagai katoda','Zn berperan sebagai anoda','E°sel = +1,10 V','Elektron mengalir dari Cu ke Zn','Reaksi sel spontan pada kondisi standar'],j:[0,1,2,4],
+ msg:'Cu merupakan katoda, Zn merupakan anoda, E°sel = +1,10 V, dan reaksi spontan. Elektron mengalir dari Zn menuju Cu.'},
+{t:'drag_word',soal:'Pada sel Daniell, massa elektrode Zn cenderung <span class="blank-slot" data-id="1">___</span>, sedangkan massa elektrode Cu cenderung <span class="blank-slot" data-id="2">___</span>.',
+ w:['berkurang','bertambah','tetap','hilang seluruhnya'],j:['berkurang','bertambah'],
+ msg:'Zn mengalami oksidasi menjadi Zn²⁺ sehingga massa Zn berkurang. Cu²⁺ mengalami reduksi menjadi Cu(s) sehingga massa Cu bertambah.'},
+{t:'jodoh',soal:'Jodohkan arah perpindahan dengan partikel yang tepat pada sel Volta!',
+ pairs:[{n:1,t:'Mengalir melalui kawat dari anoda ke katoda'},{n:2,t:'Bergerak melalui jembatan garam menuju anoda'},{n:3,t:'Bergerak melalui jembatan garam menuju katoda'}],
+ imgs:[{n:1,i:'./asset/img/latih_elektron.png',name:'Elektron'},{n:2,i:'./asset/img/latih_anion.png',name:'Anion'},{n:3,i:'./asset/img/latih_kation.png',name:'Kation'}],
+ msg:'Elektron bergerak melalui rangkaian luar dari anoda menuju katoda. Anion bergerak menuju anoda dan kation menuju katoda melalui jembatan garam untuk membantu menjaga kenetralan muatan.'}
+];
+
+/* ===== DURASI WAKTU (detik) — ubah angka di sini untuk menyesuaikan ===== */
+// Bermain: urutan = permainan 1-10. Kumpul (4 & 9) = lama permainan; Sambung (5 & 10) = per langkah
+const DUR_BERMAIN=[45,30,60,30,25,60,30,75,30,30];
+// Berlatih: urutan = soal 1-10
+const DUR_LATIH=[60,30,45,75,60,45,30,90,45,60];
+dataBermain.forEach((g,i)=>g.dur=DUR_BERMAIN[i]);dtLatih.forEach((q,i)=>q.dur=DUR_LATIH[i]);
+
+/* ===================== MESIN ===================== */
+const $=id=>document.getElementById(id);
+function imgErr0(el){ el.onerror=null; const l=(el.alt||'gambar').replace(/[<>&]/g,'').slice(0,20);
+  el.src="data:image/svg+xml;utf8,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='220' height='160'><rect width='100%' height='100%' rx='14' fill='#1D3657' stroke='#2A4670' stroke-width='3' stroke-dasharray='9'/><text x='50%' y='46%' font-size='44' text-anchor='middle'>🖼️</text><text x='50%' y='76%' font-size='15' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='#9DB4D1'>"+l+"</text></svg>"); }
+/* ===== GAMBAR PENGGANTI (SVG): dipakai otomatis bila file di ./asset/img belum ada ===== */
+const svgURI=s=>'data:image/svg+xml;utf8,'+encodeURIComponent(s);
+const SV=(w,h,b)=>`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' width='${w}' height='${h}'><defs><linearGradient id='m'><stop offset='0' stop-color='#E2E8F0'/><stop offset='.5' stop-color='#94A3B8'/><stop offset='1' stop-color='#CBD5E1'/></linearGradient><linearGradient id='c'><stop offset='0' stop-color='#F59E0B'/><stop offset='.5' stop-color='#B45309'/><stop offset='1' stop-color='#F97316'/></linearGradient><marker id='ar' markerWidth='8' markerHeight='8' refX='6' refY='4' orient='auto'><path d='M0 0L8 4L0 8z' fill='#22D3EE'/></marker></defs>${b}</svg>`;
+const T=(x,y,t,s=12,c='#E8F1FB',a='middle',w=700)=>`<text x='${x}' y='${y}' font-size='${s}' fill='${c}' text-anchor='${a}' font-weight='${w}' font-family='Segoe UI,Arial,sans-serif'>${t}</text>`;
+const NB=(x,y,n)=>`<circle cx='${x}' cy='${y}' r='9' fill='#FBBF24'/>`+T(x,y+4,n,11,'#06222B','middle',900);
+const PL=(x,y,w,h,f)=>`<rect x='${x}' y='${y}' width='${w}' height='${h}' rx='3' fill='${f}'/>`;
+const TRI=(x,y,c)=>`<path d='M${x-7} ${y-6}L${x+7} ${y}L${x-7} ${y+6}z' fill='${c}'/>`;
+const BK=(x,y,w,h,l,f)=>`<rect x='${x}' y='${y+l}' width='${w}' height='${h-l}' rx='7' fill='${f}'/><path d='M${x} ${y}V${y+h-8}Q${x} ${y+h} ${x+8} ${y+h}H${x+w-8}Q${x+w} ${y+h} ${x+w} ${y+h-8}V${y}' fill='none' stroke='#9DB4D1' stroke-width='3' stroke-linecap='round'/>`;
+const BR=(x1,x2,y,yb)=>{const p=`M${x1} ${yb}V${y+12}Q${x1} ${y} ${x1+12} ${y}H${x2-12}Q${x2} ${y} ${x2} ${y+12}V${yb}`;return `<path d='${p}' fill='none' stroke='#CBD5E1' stroke-width='16'/><path d='${p}' fill='none' stroke='#FDE68A' stroke-width='9'/>`;};
+const EL=(sym,f,liq,ion)=>SV(160,160,BK(30,50,100,95,18,liq)+PL(66,14,28,96,f)+T(80,70,sym,16,'#0B1626')+T(80,134,ion,13));
+const cell=o=>`<path d='M70 72V44H230V72' fill='none' stroke='#FBBF24' stroke-width='4' stroke-linejoin='round'/><circle cx='150' cy='44' r='16' fill='#0B1626' stroke='#22D3EE' stroke-width='3'/>${T(150,50,'V',15,'#22D3EE')}${BK(30,125,100,140,26,'#7C8DA6')}${BK(170,125,100,140,26,'#2E9BD6')}${PL(62,70,16,150,'url(#m)')}${PL(222,70,16,150,'url(#c)')}${BR(108,192,106,190)}${T(100,248,'Zn²⁺',13)}${T(200,248,'Cu²⁺',13)}${T(70,284,'Zn',15,'#CBD5E1')}${T(230,284,'Cu',15,'#F59E0B')}${o||''}`;
+const LG=(rows,y0)=>rows.map((r,i)=>NB(24,y0+i*18-4,i+1)+T(40,y0+i*18,r,13,'#E8F1FB','start',600)).join('');
+const NT=s=>SV(240,110,`<rect x='4' y='4' width='232' height='102' rx='14' fill='#0E2238' stroke='#22D3EE' stroke-width='3'/>${T(120,34,'Notasi sel',12,'#9DB4D1')}${T(120,72,s,16)}`);
+const VM=(v,c,l)=>SV(160,160,`<circle cx='80' cy='80' r='64' fill='#0E2238' stroke='${c}' stroke-width='6'/>${T(80,50,'E°sel',14,'#9DB4D1')}${T(80,90,v,25,c)}${T(80,122,l,13,c)}`);
+const PT=(t,f,d)=>SV(160,160,`<circle cx='80' cy='72' r='44' fill='${f}'/>${T(80,84,t,32,'#06222B')}<path d='${d>0?'M50 136H110':'M110 136H50'}' stroke='#FBBF24' stroke-width='4' marker-end='url(#ar)'/>`);
+const BRG=()=>SV(160,160,BK(8,80,52,60,14,'#7C8DA6')+BK(100,80,52,60,14,'#2E9BD6')+BR(34,126,40,110)+T(80,32,'garam',12,'#FDE68A'));
+const ART={
+ menu_belajar:()=>SV(100,100,`<path d='M50 28Q32 18 10 24V76Q32 70 50 80Q68 70 90 76V24Q68 18 50 28Z' fill='#22D3EE'/><path d='M50 28V80' stroke='#0B1626' stroke-width='3'/><path d='M20 38Q34 36 42 42M20 50Q34 48 42 54M58 42Q66 36 80 38M58 54Q66 48 80 50' stroke='#0B1626' stroke-width='3' fill='none' stroke-linecap='round'/>`),
+ menu_bermain:()=>SV(100,100,`<rect x='8' y='32' width='84' height='42' rx='21' fill='#FBBF24'/><path d='M30 42V64M19 53H41' stroke='#3A2A00' stroke-width='6' stroke-linecap='round'/><circle cx='66' cy='46' r='6' fill='#3A2A00'/><circle cx='78' cy='58' r='6' fill='#3A2A00'/>`),
+ menu_berlatih:()=>SV(100,100,`<rect x='22' y='14' width='56' height='76' rx='8' fill='#A78BFA'/><rect x='38' y='8' width='24' height='14' rx='4' fill='#E8F1FB'/><path d='M32 40l5 5 9-10M32 62l5 5 9-10' stroke='#fff' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/><path d='M54 42H68M54 64H68' stroke='#fff' stroke-width='4' stroke-linecap='round'/>`),
+ materi_1:()=>SV(300,400,`${T(150,26,'Energi kimia',13,'#9DB4D1')}<path d='M135 40V80L108 128Q100 146 118 146H182Q200 146 192 128L165 80V40M128 40H172' fill='none' stroke='#9DB4D1' stroke-width='3' stroke-linejoin='round'/><path d='M118 120L108 128Q100 146 118 146H182Q200 146 192 128L182 120Z' fill='#34D399' opacity='.8'/><circle cx='138' cy='132' r='4' fill='#fff' opacity='.7'/><circle cx='160' cy='126' r='3' fill='#fff' opacity='.7'/><circle cx='172' cy='136' r='5' fill='#fff' opacity='.7'/>${T(150,172,'Reaksi redoks spontan',13,'#34D399')}<path d='M150 182V208' stroke='#22D3EE' stroke-width='4' marker-end='url(#ar)'/><rect x='80' y='216' width='120' height='56' rx='10' fill='#0E2238' stroke='#22D3EE' stroke-width='4'/><rect x='200' y='234' width='10' height='20' rx='3' fill='#22D3EE'/>${PL(90,226,30,36,'#22D3EE')}${PL(126,226,30,36,'#22D3EE')}<rect x='162' y='226' width='30' height='36' rx='3' fill='#22D3EE' opacity='.5'/>${T(145,292,'Sel Volta',14,'#22D3EE')}<path d='M150 300V322' stroke='#22D3EE' stroke-width='4' marker-end='url(#ar)'/><circle cx='150' cy='352' r='24' fill='#FBBF24'/><path d='M140 360L146 348L154 358L160 346' stroke='#7A4A00' stroke-width='3' fill='none'/>${PL(140,376,20,10,'#94A3B8')}<path d='M110 330L120 340M190 330L180 340M100 352H116M200 352H184' stroke='#FDE68A' stroke-width='3' stroke-linecap='round'/>${T(150,398,'Energi listrik',13,'#9DB4D1')}`),
+ materi_2:()=>SV(300,330,`<circle cx='70' cy='100' r='36' fill='url(#m)'/>${T(70,106,'Zn',20,'#0B1626')}<circle cx='230' cy='100' r='36' fill='url(#c)'/>${T(230,106,'Cu²⁺',18,'#fff')}<path d='M112 78Q150 28 188 78' fill='none' stroke='#22D3EE' stroke-width='3' marker-end='url(#ar)'/><circle cx='128' cy='56' r='7' fill='#22D3EE'/><circle cx='172' cy='56' r='7' fill='#22D3EE'/>${T(150,36,'2e⁻',14,'#22D3EE')}${T(70,160,'Oksidasi',14,'#FBBF24')}${T(70,178,'melepas e⁻',12,'#9DB4D1')}${T(230,160,'Reduksi',14,'#FBBF24')}${T(230,178,'menerima e⁻',12,'#9DB4D1')}<rect x='30' y='204' width='240' height='104' rx='14' fill='#0E2238' stroke='#FBBF24' stroke-width='3'/>${T(150,238,'AnOx – RedCat',22,'#FBBF24')}${T(150,268,'Anoda → Oksidasi',14)}${T(150,290,'Katoda → Reduksi',14)}`),
+ materi_3:()=>SV(300,400,cell(NB(46,96,1)+NB(254,96,2)+NB(46,215,3)+NB(100,28,4)+NB(150,86,5)+LG(['Anoda (−): oksidasi','Katoda (+): reduksi','Larutan elektrolit','Kawat penghantar','Jembatan garam'],312))),
+ materi_4:()=>SV(300,400,cell(TRI(105,44,'#22D3EE')+TRI(195,44,'#22D3EE')+T(105,30,'e⁻',13,'#22D3EE')+T(195,30,'e⁻',13,'#22D3EE')+`<circle cx='46' cy='175' r='10' fill='#F87171'/>`+T(46,181,'−',16,'#3B0A0A')+`<circle cx='254' cy='175' r='10' fill='#34D399'/>`+T(254,181,'+',16,'#04271B')+T(150,322,'Anoda: Zn → Zn²⁺ + 2e⁻',13,'#FBBF24')+T(150,344,'Katoda: Cu²⁺ + 2e⁻ → Cu',13,'#34D399')+T(150,366,'Elektron mengalir dari Zn ke Cu',12,'#22D3EE'))),
+ materi_5:()=>SV(300,400,cell(T(122,90,'← anion',11,'#60A5FA')+T(180,90,'kation →',11,'#F87171')+T(150,322,'Zn(s) | Zn²⁺(aq) ||',15,'#FBBF24')+T(150,344,'Cu²⁺(aq) | Cu(s)',15,'#FBBF24')+T(150,370,'anoda (kiri)  ||  katoda (kanan)',11,'#9DB4D1'))),
+ materi_6:()=>SV(300,400,`${T(150,26,'Potensial reduksi standar',13,'#9DB4D1')}<path d='M70 44V340' stroke='#9DB4D1' stroke-width='3'/><path d='M60 155H250' stroke='#9DB4D1' stroke-width='1.5' stroke-dasharray='5'/>${T(54,159,'0',12,'#9DB4D1','end')}<circle cx='70' cy='90' r='9' fill='#F59E0B'/>${T(92,95,'Cu²⁺/Cu  +0,34 V',13,'#F59E0B','start')}<circle cx='70' cy='299' r='9' fill='#CBD5E1'/>${T(92,304,'Zn²⁺/Zn  −0,76 V',13,'#CBD5E1','start')}<path d='M262 98V291' stroke='#34D399' stroke-width='3'/><path d='M256 286L262 298L268 286z' fill='#34D399'/><path d='M256 104L262 92L268 104z' fill='#34D399'/>${T(250,190,'E°sel',14,'#34D399','end')}${T(250,210,'= 1,10 V',16,'#34D399','end')}${T(150,372,'E°sel > 0  →  spontan ✔',14,'#34D399')}`),
+ materi_7:()=>SV(300,350,[['Reaksi redoks spontan','energi kimia','#22D3EE'],['Oksidasi di anoda (−)','Reduksi di katoda (+)','#FBBF24'],['Elektron: anoda → katoda','ion lewat jembatan garam','#A78BFA'],['E°sel > 0  →  spontan','energi listrik','#34D399']].map((r,i)=>{const y=14+i*86;return `<rect x='30' y='${y}' width='240' height='60' rx='14' fill='#0E2238' stroke='${r[2]}' stroke-width='3'/>${T(150,y+27,r[0],15,r[2])}${T(150,y+46,r[1],12,'#9DB4D1',  'middle',600)}${i<3?`<path d='M150 ${y+62}V${y+82}' stroke='#22D3EE' stroke-width='3' marker-end='url(#ar)'/>`:''}`;}).join('')),
+ game_zn:()=>EL('Zn','url(#m)','#7C8DA6','Zn²⁺'),
+ game_cu:()=>EL('Cu','url(#c)','#2E9BD6','Cu²⁺'),
+ game_bridge:BRG,game_jembatan:BRG,latih_bridge:BRG,
+ game_wire:()=>SV(160,160,`<path d='M10 110C30 50 50 50 60 110S90 170 100 110S130 50 150 110' fill='none' stroke='url(#c)' stroke-width='8' stroke-linecap='round'/><circle cx='34' cy='74' r='9' fill='#22D3EE'/><circle cx='100' cy='112' r='9' fill='#22D3EE'/>${T(34,78,'e⁻',9,'#06222B')}${T(100,116,'e⁻',9,'#06222B')}<path d='M30 28H120' stroke='#FBBF24' stroke-width='4' marker-end='url(#ar)'/>${T(80,150,'kawat',13,'#9DB4D1')}`),
+ game_anoda:()=>SV(160,160,`${PL(50,34,40,100,'url(#m)')}${T(70,102,'−',44,'#0B1626')}<circle cx='128' cy='58' r='11' fill='#F87171'/><circle cx='138' cy='98' r='11' fill='#F87171'/><circle cx='122' cy='130' r='11' fill='#F87171'/>${T(128,63,'+',14,'#3B0A0A')}${T(138,103,'+',14,'#3B0A0A')}${T(122,135,'+',14,'#3B0A0A')}<circle cx='70' cy='16' r='9' fill='#22D3EE'/>${T(70,20,'e⁻',9,'#06222B')}${T(80,154,'oksidasi',13,'#FBBF24')}`),
+ game_katoda:()=>SV(160,160,`${PL(50,34,40,100,'url(#c)')}${T(70,102,'+',44,'#0B1626')}<circle cx='128' cy='58' r='11' fill='#38BDF8'/><circle cx='138' cy='98' r='11' fill='#38BDF8'/><circle cx='122' cy='130' r='11' fill='#38BDF8'/>${T(128,63,'+',14,'#06222B')}${T(138,103,'+',14,'#06222B')}${T(122,135,'+',14,'#06222B')}<circle cx='70' cy='16' r='9' fill='#22D3EE'/>${T(70,20,'e⁻',9,'#06222B')}${T(80,154,'reduksi',13,'#FBBF24')}`),
+ game_sel:()=>SV(160,160,`<g transform='translate(4,6) scale(.51)'>${cell()}</g>`),
+ game_notasi_benar:()=>NT('Zn | Zn²⁺ || Cu²⁺ | Cu'),game_notasi_2:()=>NT('Cu | Cu²⁺ || Zn²⁺ | Zn'),game_notasi_3:()=>NT('Zn²⁺ | Zn || Cu | Cu²⁺'),game_notasi_4:()=>NT('Zn || Zn²⁺ | Cu²⁺ || Cu'),
+ game_e_positif:()=>VM('+1,10 V','#34D399','spontan ✔'),game_e_negatif:()=>VM('−0,45 V','#F87171','tidak spontan'),game_e_nol:()=>VM('0 V','#9DB4D1','setimbang'),
+ latih_zn:()=>EL('Zn','url(#m)','#7C8DA6','Zn²⁺'),latih_cu:()=>EL('Cu','url(#c)','#2E9BD6','Cu²⁺'),
+ latih_elektron:()=>PT('e⁻','#22D3EE',1),latih_anion:()=>PT('A⁻','#60A5FA',-1),latih_kation:()=>PT('K⁺','#F87171',1),
+ bg_judul:()=>{const r=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);};let p=`<rect width='1280' height='720' fill='#0B1626'/>`;
+  for(let i=0;i<26;i++){const x=r(i)*1280|0,y=r(i+50)*720|0,x2=x+((r(i+99)-.5)*420|0),y2=y+((r(i+7)-.5)*300|0);p+=`<path d='M${x} ${y}H${x2}V${y2}' fill='none' stroke='#22D3EE' stroke-width='2' opacity='.55'/><circle cx='${x}' cy='${y}' r='5' fill='#FBBF24'/><circle cx='${x2}' cy='${y2}' r='4' fill='#22D3EE'/>`;}
+  return SV(1280,720,p);}
+};
+function imgErr(el){const n=(el.getAttribute('src')||'').split('/').pop().replace(/\.\w+$/,'');
+  if(ART[n]&&!el.dataset.art){el.dataset.art=1;el.src=svgURI(ART[n]());return;}imgErr0(el);}
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* scaling */
+const stage=$('stage');
+function resizeStage(){const w=innerWidth,h=innerHeight,s=Math.min(w/1280,h/720);stage.style.transform='scale('+s+')';stage.style.left=((w-1280*s)/2)+'px';stage.style.top=((h-720*s)/2)+'px';}
+addEventListener('resize',resizeStage);resizeStage();
+
+/* audio: file mp3 di ./asset/audio dipakai bila ada; bila tidak ada, dipakai efek suara & musik latar sintetis */
+let soundOn=true,vol=1;const AU={},HAS={};
+['bgm:bgm','klik:sfx_klik','benar:sfx_benar','salah:sfx_salah','transisi:sfx_transisi','bintang:sfx_bintang'].forEach(s=>{const [k,f]=s.split(':');try{const a=new Audio('./asset/audio/'+f+'.mp3');a.preload='auto';a.addEventListener('canplaythrough',()=>{HAS[k]=true;});a.addEventListener('error',()=>{HAS[k]=false;});AU[k]=a;}catch(e){}});
+if(AU.bgm)AU.bgm.loop=true;
+let AC=null,MG=null,BG=null,bgmOn=false,bgmT=null,bgmBar=0;
+function ctx(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();MG.gain.value=vol;MG.connect(AC.destination);BG=AC.createGain();BG.gain.value=.5;BG.connect(MG);}catch(e){return null;}}if(AC.state==='suspended')AC.resume();return AC;}
+function tn(f,t,d,type,g,to,dest){const c=AC,o=c.createOscillator(),v=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);
+  v.gain.setValueAtTime(.0001,t);v.gain.exponentialRampToValueAtTime(g||.3,t+.012);v.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(v);v.connect(dest||MG);o.start(t);o.stop(t+d+.05);}
+function nz(t,d,f1,f2,g){const c=AC,n=Math.floor(c.sampleRate*d),b=c.createBuffer(1,n,c.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=Math.random()*2-1;
+  const s=c.createBufferSource();s.buffer=b;const fl=c.createBiquadFilter();fl.type='bandpass';fl.Q.value=1.2;fl.frequency.setValueAtTime(f1,t);fl.frequency.exponentialRampToValueAtTime(f2,t+d);
+  const v=c.createGain();v.gain.setValueAtTime(g,t);v.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(fl);fl.connect(v);v.connect(MG);s.start(t);}
+const SFX={
+ klik:t=>{tn(880,t,.06,'triangle',.22,1320);},
+ benar:t=>{[523.25,659.25,783.99,1046.5].forEach((f,i)=>{tn(f,t+i*.075,.28,'triangle',.28);tn(f*2,t+i*.075,.2,'sine',.08);});},
+ salah:t=>{tn(220,t,.22,'sawtooth',.2,150);tn(165,t+.16,.34,'sawtooth',.2,90);},
+ transisi:t=>{nz(t,.28,500,2600,.12);tn(420,t,.24,'sine',.1,840);},
+ bintang:t=>{[523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>tn(f,t+i*.11,.5,'triangle',.26));[523.25,659.25,783.99].forEach(f=>tn(f,t+.6,.9,'sine',.16));},
+ tick:t=>{tn(1500,t,.05,'square',.1);},
+ habis:t=>{tn(300,t,.28,'sawtooth',.24,160);tn(300,t+.3,.28,'sawtooth',.24,120);tn(150,t+.6,.5,'sawtooth',.22,70);}
+};
+function play(k){if(!soundOn||vol===0)return;
+  if(k==='bgm'){startBgm();return;}
+  if(HAS[k]&&AU[k]){try{const a=AU[k];a.volume=vol;a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}return;}
+  if(SFX[k]&&ctx())SFX[k](AC.currentTime+.01);}
+const CH=[[220,261.63,329.63],[174.61,220,261.63],[261.63,329.63,392],[196,246.94,293.66]];
+function bgmBarPlay(){if(!bgmOn||!ctx())return;const t=AC.currentTime+.05,ch=CH[bgmBar%4],q=.6;
+  ch.forEach(f=>tn(f/2,t,q*4,'sine',.07,0,BG));
+  [0,1,2,1,2,1,0,2].forEach((n,i)=>tn(ch[n]*2,t+i*q/2,.5,'triangle',i%2?.07:.1,0,BG));
+  bgmBar++;bgmT=setTimeout(bgmBarPlay,q*4*1000-60);}
+function startBgm(){if(HAS.bgm&&AU.bgm){AU.bgm.volume=vol;const p=AU.bgm.play();if(p&&p.catch)p.catch(()=>{});return;}if(bgmOn)return;bgmOn=true;bgmBar=0;bgmBarPlay();}
+function stopBgm(){bgmOn=false;clearTimeout(bgmT);if(AU.bgm)AU.bgm.pause();}
+function changeVolume(v){vol=parseFloat(v);if(MG)MG.gain.value=vol;if(vol===0){soundOn=false;$('snd').textContent='🔇';stopBgm();}else{soundOn=true;$('snd').textContent=vol<.5?'🔉':'🔊';startBgm();}for(const k in AU)if(AU[k])AU[k].volume=vol;}
+function toggleSound(){if(soundOn){soundOn=false;$('volume-slider').value=0;$('snd').textContent='🔇';stopBgm();}else{soundOn=true;vol=vol===0?1:vol;$('volume-slider').value=vol;$('snd').textContent='🔊';if(MG)MG.gain.value=vol;for(const k in AU)if(AU[k])AU[k].volume=vol;startBgm();}}
+document.addEventListener('click',e=>{if(e.target.closest('.btn,.nav-i,.mcard'))play('klik');});
+
+/* efek */
+function salahFx(){const e=$('efek');e.classList.add('on');setTimeout(()=>e.classList.remove('on'),60);}
+function confetti(){const c=['#22D3EE','#FBBF24','#34D399','#A78BFA','#fff'];for(let i=0;i<55;i++){const d=document.createElement('div');d.className='cf';d.style.left='55%';d.style.top='50%';d.style.background=c[Math.floor(Math.random()*c.length)];const a=Math.random()*Math.PI*2,v=100+Math.random()*400;d.style.setProperty('--tx',Math.cos(a)*v+'px');d.style.setProperty('--ty',Math.sin(a)*v-200+'px');if(Math.random()>.5)d.style.borderRadius='50%';stage.appendChild(d);setTimeout(()=>d.remove(),1400);}}
+function fb(id,kind,msg){const f=$(id);if(!f)return;f.className='fb show '+kind;f.innerHTML=msg;}
+
+/* ===== TIMER PER SOAL ===== */
+let curMode='',sGen=0;
+const TM={id:null,total:0,left:0};
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function tmDraw(){const l=Math.max(0,TM.left),r=l/TM.total,cls=l<=5||r<=.15?'bad':r<=.4?'warn':'';
+  $('timer-txt').textContent=fmt(l);$('timer-box').className='timer '+cls;$('tbar').className='tbar '+cls;$('tbar-i').style.width=(r*100)+'%';}
+function timerStop(){if(TM.id){clearInterval(TM.id);TM.id=null;}}
+function timerHide(){timerStop();$('timer-box').classList.add('hidden');$('tbar').classList.add('hidden');}
+function timerDone(txt,cls){timerStop();$('timer-box').className='timer '+(cls||'ok');$('timer-txt').textContent=txt||'Selesai ✔';$('tbar').classList.add('hidden');}
+function timerStart(total,left,onEnd,onTick){timerStop();TM.total=total;TM.left=left;$('tbar').classList.remove('hidden');
+  $('tbar-i').style.transition='none';tmDraw();void $('tbar-i').offsetWidth;$('tbar-i').style.transition='';
+  TM.id=setInterval(()=>{TM.left--;if(onTick)onTick(TM.left);tmDraw();if(TM.left>0&&TM.left<=5)play('tick');if(TM.left<=0){timerStop();onEnd();}},1000);}
+
+/* ===== Bermain: waktu habis ===== */
+function gTimer(onEnd,force){const g=dataBermain[mStep];
+  if(mDone[mStep]&&!force){mTO[mStep]?timerDone('Waktu habis','to'):timerDone();return;}
+  timerStart(g.dur,g.dur,()=>{if(curMode==='bermain')onEnd();});}
+function gTimeout(){if(mDone[mStep])return;mTO[mStep]=true;addSkor(-5);play('habis');salahFx();selesaiGame();timerDone('00:00','to');}
+function sambungTimeout(gen,s){if(gen!==sGen||curMode!=='bermain')return;
+  document.querySelectorAll('.sb').forEach(x=>{x.style.pointerEvents='none';if(x.textContent===s.benar)x.classList.add('benar');});
+  addSkor(-5);play('habis');salahFx();timerDone('00:00','to');
+  fb('pfb','no','⏰ <b>Waktu habis (-5 poin).</b> Jawaban yang benar: <b>'+s.benar+'</b>');sS++;
+  setTimeout(()=>{if(gen!==sGen||curMode!=='bermain')return;if(sS>=sG.steps.length)selesaiGame();drawSambung();},2200);}
+
+/* ===== Berlatih: waktu habis ===== */
+function revealL(q){const P=document.querySelectorAll('#panel .op');
+  if(q.t==='pg')P.forEach((e,i)=>{if(i===q.j)e.classList.add('benar');});
+  else if(q.t==='pg_kompleks')P.forEach((e,i)=>{e.classList.remove('terpilih');if(q.j.includes(i))e.classList.add('benar');});
+  else if(q.t==='bs'){const b=document.querySelector(q.j?'.bsb.t':'.bsb.f');if(b)b.classList.add('sorot');}
+  else if(q.t==='drag_word')document.querySelectorAll('#kd .blank-slot').forEach((b,i)=>{b.textContent=q.j[i];b.classList.add('terisi');});
+  else if(q.t==='jodoh')document.querySelectorAll('#panel .pr').forEach(e=>e.classList.add('locked'));}
+function timeUpL(){if(curMode!=='berlatih')return;const q=dtLatih[L.step],s=L.st[L.step];if(s.done)return;
+  s.done=true;s.att=true;s.to=true;s.left=0;play('habis');salahFx();revealL(q);
+  fb('lfb','no',`⏰ <b>Waktu habis.</b><br>${q.msg||''}`);lockL();$('b-next').disabled=false;
+  stepChips(dtLatih.length,L.step,i=>L.st[i].done,null,i=>L.st[i].to);timerDone('00:00','to');}
+
+/* modal */
+function openModal(id){$(id).classList.add('show');play('transisi');}
+function closeModal(id){$(id).classList.remove('show');play('klik');}
+document.querySelectorAll('.mb').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+
+/* config */
+function applyConfig(){const C=CONFIG,P=C.profil;
+  $('cfg-judul').textContent=C.judul;$('cfg-sub').textContent=C.subJudul;$('cfg-bg').src=C.bgJudul;
+  $('cfg-chip').textContent=(C.mapel+' • FASE '+C.fase).toUpperCase();
+  $('i-fase').textContent='Fase / Kelas '+C.fase;$('i-mapel').textContent=C.mapel;$('i-unit').textContent=C.unit;$('i-sub').textContent=C.subUnit;$('i-tp').textContent=C.tp;
+  $('d-foto').src=P.foto;$('d-nama').textContent=P.nama;$('d-ins').textContent=P.instansi;$('d-surel').textContent=P.surel;$('d-thn').textContent=P.tahun;$('d-jenis').textContent=P.jenis;
+  const li=(id,a)=>$(id).innerHTML=a.map(x=>`<li>${x}</li>`).join('');
+  li('r-materi',C.referensi.materi);li('r-aset',C.referensi.aset);li('r-ai',C.referensi.ai);document.title=C.judul+' — MPI';}
+
+/* identitas */
+let murid={nama:'Murid Hebat',sek:'-'};
+function simpanIdentitas(){const n=$('in-nama').value.trim(),s=$('in-sek').value.trim();if(!n){$('lg-err').style.display='block';return;}
+  murid={nama:n,sek:s||'-'};$('u-nama').textContent=n;$('u-sek').textContent=murid.sek;closeModal('m-login');$('hero').classList.add('hidden');$('app').classList.remove('hidden');play('bgm');go('menu');}
+function goHero(){killKumpul();timerHide();$('app').classList.add('hidden');$('hero').classList.remove('hidden');}
+
+/* router */
+let prevFn=()=>{},nextFn=()=>{};
+function chrome(mode,judul,sub){timerHide();curMode=mode;
+  ['menu','belajar','bermain','berlatih'].forEach(m=>$('n-'+m).classList.toggle('on',m===mode));
+  $('h-judul').textContent=judul;$('h-sub').textContent=sub||'';
+  $('skor-box').classList.toggle('hidden',mode!=='bermain');
+  $('steps').classList.toggle('hidden',mode==='menu');
+  $('foot').classList.toggle('hidden',mode==='menu');
+  play('transisi');}
+function stepChips(total,cur,done,clickFn,bad){
+  let h='';for(let i=0;i<total;i++){h+=`<div class="stp ${i===cur?'on':''} ${done&&done(i)?'ok':''} ${bad&&bad(i)?'to':''} ${clickFn?'':'lock'}" ${clickFn?`onclick="${clickFn}(${i})"`:''}>${i+1}</div>`;}
+  $('steps').innerHTML=h;}
+function go(m){killKumpul();if(m==='menu')renderMenu();}
+function renderMenu(){
+  chrome('menu','Beranda','Pilih kegiatan belajar');
+  $('panel').innerHTML=`<p class="sapa">Halo, <b>${murid.nama}</b>! Ibu sarankan mulai dari <b>Belajar</b>, lanjut ke <b>Bermain</b>, lalu uji pemahamanmu lewat <b>Berlatih</b>.</p>
+  <div class="menu-grid">
+   <button class="mcard a" onclick="startBelajar()"><span class="no">01</span><img src="./asset/img/menu_belajar.png" alt="Belajar" onerror="imgErr(this)"><h3>Belajar</h3><p>7 slide materi dengan kuis mini</p></button>
+   <button class="mcard b" onclick="startBermain()"><span class="no">02</span><img src="./asset/img/menu_bermain.png" alt="Bermain" onerror="imgErr(this)"><h3>Bermain</h3><p>10 permainan interaktif</p></button>
+   <button class="mcard c" onclick="startBerlatih()"><span class="no">03</span><img src="./asset/img/menu_berlatih.png" alt="Berlatih" onerror="imgErr(this)"><h3>Berlatih</h3><p>10 soal evaluasi</p></button>
+  </div>`;}
+
+/* ===== BELAJAR ===== */
+let bStep=0;
+function startBelajar(){killKumpul();bStep=0;renderBelajar();}
+function renderBelajar(){
+  const m=MATERI[bStep],tot=MATERI.length;
+  chrome('belajar','Belajar',m.judul);stepChips(tot,bStep,i=>i<bStep,'jumpB');
+  prevFn=()=>{bStep>0?(bStep--,renderBelajar()):go('menu');};
+  nextFn=()=>{bStep<tot-1?(bStep++,renderBelajar()):go('menu');};
+  $('b-prev').textContent=bStep===0?'🏠 Beranda':'◀ Sebelumnya';$('b-next').textContent=bStep===tot-1?'Selesai ✔':'Selanjutnya ▶';$('b-next').disabled=false;
+  let k='';if(m.kuis)k=`<div class="kuismini"><p>✨ Coba Jawab! ${m.kuis.tanya}</p><div class="row"><button class="btn btn-amber" onclick="kuisMini(this,${m.kuis.j===0})">${m.kuis.o[0]}</button><button class="btn btn-amber" onclick="kuisMini(this,${m.kuis.j===1})">${m.kuis.o[1]}</button></div></div>`;
+  $('panel').innerHTML=`<div class="bl"><div class="bl-teks"><h3>${m.judul}</h3><div class="intro">${m.intro}</div><div class="isi">${m.isi}</div>${k}</div><div class="bl-img"><img src="${m.img}" alt="${m.judul}" onerror="imgErr(this)"></div></div>`;}
+function jumpB(i){bStep=i;renderBelajar();}
+function kuisMini(btn,ok){btn.parentNode.querySelectorAll('button').forEach(b=>b.disabled=true);
+  if(ok){btn.style.background='var(--benar)';btn.innerHTML+=' ✔️';play('benar');confetti();}else{btn.style.background='var(--salah)';btn.innerHTML+=' ❌';play('salah');salahFx();}}
+
+/* ===== BERMAIN ===== */
+let skorB=0,mStep=0,mDone=[],mTO=[],G=null;
+function addSkor(v){skorB=Math.max(0,skorB+v);$('skor').textContent=skorB;}
+function startBermain(){killKumpul();mStep=0;skorB=0;mDone=dataBermain.map(()=>false);mTO=dataBermain.map(()=>false);addSkor(0);renderBermain();}
+function renderBermain(){
+  killKumpul();const g=dataBermain[mStep],tot=dataBermain.length;
+  chrome('bermain','Bermain','Permainan '+(mStep+1)+': '+g.sub);stepChips(tot,mStep,i=>mDone[i],null,i=>mTO[i]);
+  prevFn=()=>{killKumpul();mStep>0?(mStep--,renderBermain()):go('menu');};
+  nextFn=()=>{if(mStep<tot-1){mStep++;renderBermain();}else renderSkorB();};
+  $('b-prev').textContent=mStep===0?'🏠 Beranda':'◀ Sebelumnya';$('b-next').textContent=mStep===tot-1?'Selesai ✔':'Selanjutnya ▶';
+  $('b-next').disabled=!mDone[mStep];
+  ({jodoh:gJodoh,klik:gKlik,urut:gUrut,kumpul:gKumpul,sambung:gSambung})[g.t](g);}
+function selesaiGame(){timerDone();mDone[mStep]=true;$('b-next').disabled=false;stepChips(dataBermain.length,mStep,i=>mDone[i],null,i=>mTO[i]);}
+/* jodoh (dipakai bersama oleh Bermain & Berlatih) */
+function buildJodoh(pairs,imgs,fbId,onAll,onWrong,txtKey,reward){
+  const st={s:null,c:0,t:pairs.length};
+  let k='',r='';
+  shuffle(pairs).forEach(p=>k+=`<div class="pr" data-side="k" data-n="${p.n}"><span>${p[txtKey]}</span></div>`);
+  shuffle(imgs).forEach(p=>r+=`<div class="pr" data-side="r" data-n="${p.n}"><img src="${p.i}" alt="${p.name}" onerror="imgErr(this)"><span>${p.name}</span></div>`);
+  return {html:`<div class="jod"><div class="k">${k}</div><div class="k">${r}</div></div>`,
+   bind(root){root.querySelectorAll('.pr').forEach(el=>el.onclick=()=>{
+     if(el.classList.contains('locked'))return;
+     if(el.dataset.side==='k'){root.querySelectorAll('[data-side=k]').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');st.s=el;play('klik');return;}
+     if(!st.s){fb(fbId,'no','❌ Pilih kotak di sebelah kiri dahulu.');return;}
+     if(el.dataset.n===st.s.dataset.n){el.classList.add('locked');st.s.classList.add('locked');st.s.classList.remove('sel');st.s=null;st.c++;reward&&reward(st.c===st.t);if(st.c===st.t)onAll();}
+     else{el.classList.add('salah');setTimeout(()=>el.classList.remove('salah'),400);onWrong();}
+   });}};}
+function gJodoh(g){
+  $('panel').innerHTML=`<p class="ins">${g.ins}</p><div class="col" id="jroot"></div><div class="fb" id="pfb"></div>`;
+  const J=buildJodoh(g.pairs,g.imgs,'pfb',()=>{selesaiGame();},()=>{play('salah');addSkor(-5);salahFx();fb('pfb','no','❌ <b>Belum tepat (-5 poin).</b>');},'teks',(all)=>{play('benar');addSkor(10);confetti();fb('pfb','ok',all?'🎉 <b>Hebat! Semua berhasil dicocokkan.</b>':'✅ <b>Cocok! (+10 poin)</b>');});
+  $('jroot').innerHTML=J.html;J.bind($('jroot'));
+  gTimer(()=>{gTimeout();document.querySelectorAll('#jroot .pr').forEach(e=>e.classList.add('locked'));
+    fb('pfb','no','⏰ <b>Waktu habis (-5 poin).</b><br>'+g.pairs.map(p=>p.teks+' → <b>'+g.imgs.find(m=>m.n===p.n).name+'</b>').join('<br>'));});}
+function gKlik(g){
+  const op=shuffle(g.opsi);let c=0;const tot=g.opsi.filter(o=>o.b).length;
+  $('panel').innerHTML=`<p class="ins">${g.ins}</p><div class="grid2">${op.map((o,i)=>`<div class="obj" id="oc${i}"><img src="${o.imgPath}" alt="${o.t}" onerror="imgErr(this)"><span>${o.t}</span></div>`).join('')}</div><div class="fb" id="pfb"></div>`;
+  op.forEach((o,i)=>{const el=$('oc'+i);el.onclick=()=>{if(el.classList.contains('benar')||el.classList.contains('salah'))return;
+    if(o.b){play('benar');addSkor(20);confetti();el.classList.add('benar');c++;fb('pfb','ok',`✅ <b>Tepat! (+20 poin)</b><br>${o.msg}`);if(c===tot)selesaiGame();}
+    else{play('salah');addSkor(-5);salahFx();el.classList.add('salah');fb('pfb','no',`❌ <b>Kurang tepat (-5 poin).</b><br>${o.msg}`);setTimeout(()=>el.classList.remove('salah'),500);}};});
+  gTimer(()=>{gTimeout();op.forEach((o,i)=>{if(o.b)$('oc'+i).classList.add('benar');});document.querySelectorAll('.obj').forEach(e=>e.style.pointerEvents='none');
+    const c=g.opsi.find(o=>o.b);fb('pfb','no','⏰ <b>Waktu habis (-5 poin).</b><br>Jawaban: '+c.t+'. '+c.msg);});}
+function gUrut(g){G={g,now:null};do{G.now=shuffle(g.urut);}while(G.now.join('|')===g.urut.join('|'));drawUrut();
+  gTimer(()=>{gTimeout();G.locked=true;G.now=g.urut.slice();drawUrut();fb('pfb','no','⏰ <b>Waktu habis (-5 poin).</b> Urutan yang benar ditampilkan di atas.');});}
+function drawUrut(){
+  const items=G.now.map((t,i)=>`<div class="ur"><span class="n">${i+1}</span><span>${t}</span><button class="btn btn-ghost" onclick="mvUrut(${i},-1)" ${i===0||G.locked?'disabled':''}>▲</button><button class="btn btn-ghost" onclick="mvUrut(${i},1)" ${i===G.now.length-1||G.locked?'disabled':''}>▼</button></div>`).join('');
+  $('panel').innerHTML=`<p class="ins">${G.g.ins}</p><div class="col">${items}${G.locked?'':'<div><button class="btn btn-amber" onclick="cekUrut()">Periksa Urutan</button></div>'}<div class="fb" id="pfb"></div></div>`;}
+function mvUrut(i,d){play('klik');const j=i+d;if(j<0||j>=G.now.length)return;[G.now[i],G.now[j]]=[G.now[j],G.now[i]];drawUrut();}
+function cekUrut(){if(G.now.join('|')===G.g.urut.join('|')){play('benar');addSkor(20);confetti();fb('pfb','ok','✅ <b>Urutan tepat! (+20 poin)</b>');selesaiGame();}else{play('salah');addSkor(-5);salahFx();fb('pfb','no','❌ <b>Belum tepat (-5 poin).</b> Coba lagi!');}}
+/* kumpul */
+let kT=null,kS=null,kC=0,kTime=0,kG=null;
+function killKumpul(){if(kT){clearInterval(kT);kT=null;}if(kS){clearInterval(kS);kS=null;}}
+function gKumpul(g){killKumpul();kG=g;kC=0;kTime=30;
+  $('panel').innerHTML=`<p class="ins">${g.ins}</p><div class="hud"><div style="color:var(--benar)">⭐ Terkumpul: <span id="kc">0</span></div></div><div class="arena" id="arena"></div><div class="fb" id="pfb"></div>`;
+  gTimer(endKumpul,true);
+  kS=setInterval(spawn,650);spawn();spawn();spawn();}
+function spawn(){const a=$('arena');if(!a)return;const ok=Math.random()<.6;const f=document.createElement('div');f.className='fl';
+  const img=ok?kG.benar:(kG.salah.length?kG.salah[Math.floor(Math.random()*kG.salah.length)]:kG.benar);
+  f.innerHTML=`<img src="${img}" alt="objek" onerror="imgErr(this)">`;
+  f.style.left=Math.random()*Math.max(0,a.clientWidth-100)+'px';f.style.top=Math.random()*Math.max(0,a.clientHeight-110)+'px';
+  f.onclick=()=>{if(!f.parentNode)return;if(ok){play('benar');kC++;addSkor(5);$('kc').textContent=kC;f.remove();}else{play('salah');addSkor(-3);salahFx();f.style.filter='grayscale(1)';setTimeout(()=>f.remove(),200);}};
+  a.appendChild(f);setTimeout(()=>{if(f.parentNode)f.remove();},1700);}
+function endKumpul(){killKumpul();const a=$('arena');if(a)a.innerHTML=`<div style="display:flex;height:100%;align-items:center;justify-content:center;flex-direction:column;gap:8px"><div style="font-size:60px">🎉</div><div style="font-size:30px;font-weight:900;color:var(--cyan)">Waktu Habis!</div></div>`;
+  confetti();play('bintang');fb('pfb','ok',`⭐ <b>Kamu mengumpulkan ${kC} objek benar!</b> Tekan Selanjutnya ▶`);selesaiGame();}
+/* sambung */
+let sS=0,sG=null;
+function gSambung(g){sS=0;sG=g;sGen++;drawSambung();}
+function drawSambung(){drawSambung0();if(sS<sG.steps.length){const gen=sGen,st=sG.steps[sS];gTimer(()=>sambungTimeout(gen,st));}}
+function drawSambung0(){
+  if(sS>=sG.steps.length){$('panel').innerHTML=`<div class="akhir"><div style="font-size:56px">🎯</div><h2 style="font-size:32px">Lengkap!</h2><div class="lirik" style="font-size:22px;max-width:760px">${sG.hasil}</div><p style="font-size:19px;color:var(--redup)">Hebat! Tekan <b>Selanjutnya ▶</b></p></div>`;return;}
+  const s=sG.steps[sS];
+  $('panel').innerHTML=`<p class="ins">${sG.ins} (${sS+1}/${sG.steps.length})</p><div class="col"><div class="lirik">${s.prev}</div><div class="sopsi">${shuffle([s.benar,...s.salah]).map(o=>`<button class="sb" onclick="cekSambung(this,${o===s.benar})">${o}</button>`).join('')}</div><div class="fb" id="pfb"></div></div>`;}
+function cekSambung(b,ok){document.querySelectorAll('.sb').forEach(x=>x.style.pointerEvents='none');
+  if(ok){timerStop();b.classList.add('benar');play('benar');addSkor(10);confetti();fb('pfb','ok','✅ <b>Tepat! (+10 poin)</b>');sS++;const gen=sGen;setTimeout(()=>{if(gen!==sGen||curMode!=='bermain')return;if(sS>=sG.steps.length)selesaiGame();drawSambung();},900);}
+  else{b.classList.add('salah');play('salah');addSkor(-5);salahFx();fb('pfb','no','❌ <b>Belum tepat (-5 poin).</b> Coba lagi!');setTimeout(()=>document.querySelectorAll('.sb').forEach(x=>{x.style.pointerEvents='auto';x.classList.remove('salah');}),800);}}
+function renderSkorB(){timerHide();play('bintang');$('steps').classList.add('hidden');$('foot').classList.add('hidden');$('h-sub').textContent='Selesai';
+  $('panel').innerHTML=`<div class="akhir"><h2>🏆 Permainan Selesai!</h2><div class="id">${murid.nama} • ${murid.sek}</div><p style="font-size:22px;margin:10px 0 0">Total Skor Bermain:</p><p class="big">${skorB}</p><div style="display:flex;gap:14px"><button class="btn" onclick="startBermain()">🔄 Main Lagi</button><button class="btn btn-ghost" onclick="go('menu')">🏠 Beranda</button></div></div>`;}
+
+/* ===== BERLATIH ===== */
+let L={step:0,skor:0,st:[],temp:[]};
+function startBerlatih(){killKumpul();L={step:0,skor:0,st:dtLatih.map(q=>({done:false,att:false,to:false,left:q.dur})),temp:[]};renderBerlatih();}
+function renderBerlatih(){
+  const tot=dtLatih.length;
+  chrome('berlatih','Berlatih','Soal '+(L.step+1)+' dari '+tot);stepChips(tot,L.step,i=>L.st[i].done,null,i=>L.st[i].to);
+  prevFn=()=>{L.step>0?(L.step--,renderBerlatih()):go('menu');};
+  nextFn=()=>{if(L.step<tot-1){L.step++;renderBerlatih();}else renderSkorL();};
+  $('b-prev').textContent=L.step===0?'🏠 Beranda':'◀ Sebelumnya';$('b-next').textContent=L.step===tot-1?'Lihat Hasil ✔':'Selanjutnya ▶';
+  $('b-next').disabled=!L.st[L.step].done;
+  const q=dtLatih[L.step],p=$('panel');
+  ({pg:rPG,bs:rBS,pg_kompleks:rKomp,drag_word:rDrag,jodoh:rJodohL})[q.t](p,q);
+  const s0=L.st[L.step];
+  if(s0.done){setTimeout(()=>{if(s0.to){revealL(q);fb('lfb','no',`⏰ <b>Waktu habis.</b><br>${q.msg||''}`);}else fb('lfb','ok',`✅ <b>Sudah dijawab benar!</b><br>${q.msg||''}`);lockL();},40);timerDone(s0.to?'Waktu habis':'Selesai ✔',s0.to?'to':'ok');}
+  else timerStart(q.dur,s0.left,timeUpL,l=>{s0.left=l;});}
+function lockL(){document.querySelectorAll('#panel .op,#panel .bsb,#panel .wb,#panel .pr,#panel .cek').forEach(e=>e.style.pointerEvents='none');}
+function ulangi(){play('klik');renderBerlatih();}
+function ev(ok){const q=dtLatih[L.step],s=L.st[L.step];
+  if(ok){timerDone();s.done=true;if(!s.att)L.skor++;play('benar');confetti();fb('lfb','ok',`✅ <b>Benar!</b><br>${q.msg||''}`);$('b-next').disabled=false;stepChips(dtLatih.length,L.step,i=>L.st[i].done,null,i=>L.st[i].to);lockL();}
+  else{s.att=true;play('salah');salahFx();fb('lfb','no',`❌ <b>Kurang tepat.</b><br>${q.msg||''}<div style="margin-top:12px"><button class="btn btn-amber" onclick="ulangi()">🔄 Coba Lagi</button></div>`);lockL();}}
+function sKiri(q){return `<div class="sk"><div class="lb">PERTANYAAN</div>${q.stimulus?`<div class="st">${q.stimulus}</div>`:''}<div class="sq">${q.soal}</div>${q.img?`<img src="${q.img}" alt="Ilustrasi" onerror="imgErr(this)">`:''}</div>`;}
+function rPG(c,q){
+  c.innerHTML=`<div class="split">${sKiri(q)}<div class="sr">${q.opsi.map((o,i)=>`<div class="op ${L.st[L.step].done&&i===q.j?'benar':''}" onclick="pilihPG(this,${i})"><span class="bl2">${String.fromCharCode(65+i)}</span>${o}</div>`).join('')}<div class="fb" id="lfb"></div></div></div>`;}
+function pilihPG(el,i){if(L.st[L.step].done)return;play('klik');const ok=i===dtLatih[L.step].j;el.classList.add(ok?'benar':'salah');ev(ok);}
+function rBS(c,q){c.innerHTML=`<div class="col" style="justify-content:center"><div class="q1">${q.soal}</div><div class="bsg"><button class="bsb t" onclick="jwbBS(true)">✔ BENAR</button><button class="bsb f" onclick="jwbBS(false)">✘ SALAH</button></div><div class="fb" id="lfb"></div></div>`;}
+function jwbBS(v){if(L.st[L.step].done)return;play('klik');ev(v===dtLatih[L.step].j);}
+function rKomp(c,q){L.temp=[];
+  c.innerHTML=`<div class="split">${sKiri(q)}<div class="sr">${q.opsi.map((o,i)=>`<div class="op" id="pk${i}" onclick="togK(${i})"><span class="bl2">${String.fromCharCode(65+i)}</span>${o}</div>`).join('')}<button class="btn cek" onclick="cekK()">Periksa Jawaban</button><div class="fb" id="lfb"></div></div></div>`;}
+function togK(i){if(L.st[L.step].done)return;play('klik');$('pk'+i).classList.toggle('terpilih');const x=L.temp.indexOf(i);x>-1?L.temp.splice(x,1):L.temp.push(i);}
+function cekK(){const q=dtLatih[L.step];const ok=L.temp.length===q.j.length&&L.temp.every(v=>q.j.includes(v));
+  if(ok)document.querySelectorAll('#panel .op').forEach((e,i)=>{e.classList.remove('terpilih');if(q.j.includes(i))e.classList.add('benar');});ev(ok);}
+function rDrag(c,q){
+  c.innerHTML=`<div class="col" style="justify-content:center"><div class="kal" id="kd">${q.soal}</div><div class="pool">${q.w.map((w,i)=>`<button class="wb" id="wb${i}" data-w="${w}" onclick="tapW(this)">${w}</button>`).join('')}</div><div style="text-align:center;margin-top:18px"><button class="btn cek" onclick="cekD()">Periksa</button></div><div class="fb" id="lfb"></div></div>`;
+  document.querySelectorAll('#kd .blank-slot').forEach(b=>b.onclick=()=>{if(L.st[L.step].done||!b.classList.contains('terisi'))return;play('klik');const w=$(b.dataset.wb);if(w)w.classList.remove('dipakai');b.textContent='___';b.classList.remove('terisi');delete b.dataset.wb;});}
+function tapW(btn){if(L.st[L.step].done)return;const t=[...document.querySelectorAll('#kd .blank-slot')].find(b=>!b.classList.contains('terisi'));if(t){play('klik');t.textContent=btn.dataset.w;t.classList.add('terisi');btn.classList.add('dipakai');t.dataset.wb=btn.id;}}
+function cekD(){const q=dtLatih[L.step];const a=[...document.querySelectorAll('#kd .blank-slot')].map(b=>b.textContent.trim());ev(a.join('|')===q.j.join('|'));}
+function rJodohL(c,q){
+  c.innerHTML=`<div class="col"><div class="q1">${q.soal}</div><div class="col" id="jl"></div><div class="fb" id="lfb"></div></div>`;
+  const J=buildJodoh(q.pairs,q.imgs,'lfb',()=>ev(true),()=>ev(false),'t',null);
+  $('jl').innerHTML=J.html;J.bind($('jl'));}
+function renderSkorL(){timerHide();play('bintang');$('steps').classList.add('hidden');$('foot').classList.add('hidden');$('h-sub').textContent='Selesai';
+  const tl=L.st.filter(x=>x.to).length,tot=dtLatih.length,pc=Math.round(L.skor/tot*100);
+  const ps=pc>=80?'🎉 <b>Luar biasa! Pemahaman kalian sudah sangat baik.</b>':pc>=50?'Bagus! Ibu sarankan pelajari lagi bagian yang belum tepat.':'Tetap semangat! Pelajari kembali materi Belajar, lalu kerjakan latihan sekali lagi.';
+  $('panel').innerHTML=`<div class="akhir"><h2>Bagus, Anak-anak!</h2><div class="id">${murid.nama} • ${murid.sek}</div><p style="font-size:22px;margin:8px 0 0">Jawaban benarmu:</p><p class="big">${L.skor} <span style="font-size:36px;color:var(--redup)">dari ${tot}</span></p><p style="font-size:24px;font-weight:800;color:var(--cyan);margin:0">Skor Akhir: ${pc}</p><p style="font-size:19px;margin:6px 0">${ps}</p>${tl?`<p style="font-size:17px;margin:0;color:var(--salah)">⏰ ${tl} soal terlewat karena waktu habis</p>`:''}<div style="display:flex;gap:14px"><button class="btn" onclick="startBerlatih()">🔄 Ulangi Ujian</button><button class="btn btn-ghost" onclick="go('menu')">🏠 Beranda</button></div></div>`;}
+
+applyConfig();
+</script>
+</body>
+</html>
